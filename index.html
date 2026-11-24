@@ -5,79 +5,104 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>캐릭터챗 프롬프트 검수기</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;700&family=Black+Han+Sans&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* VOICE: 꼼꼼한 검수 담당자의 체크 시트. 차분하고 실무적.
-   IDEA: 심사 서류에 찍히는 검수 도장 + 형광펜으로 표시한 원고.
-   PICTURE: 입력 원고와 결과 도장, 원문 위 형광펜 하이라이트.
-   COLOUR and TYPE: 민트 필드 + 하늘색 보조 + 코랄 경고. Gothic A1 / Noto Sans KR / 도장은 Black Han Sans.
-   LAYOUT: 상단 민트 밴드, 좌측 원고 입력, 우측 판정 결과, 하단 플랫폼별 정책 요약. */
+/* VOICE: 다정하고 꼼꼼한 검수 도우미. 깔끔하고 귀엽게, 정보는 또렷하게.
+   IDEA: 피크닉 매트 같은 민트 깅엄 체크 위에 놓인 검수 노트, 새싹 수달이 옆에서 같이 확인해 줌.
+   PICTURE: 상단 체크무늬 밴드 위 수달 + 말풍선, 결과 카드의 둥근 도장.
+   COLOUR and TYPE: 민트·하늘색 파스텔, 수달 브라운을 잉크로, 위반은 코랄. 제목 Jua, 본문 Noto Sans KR.
+   LAYOUT: 체크 밴드 히어로, 둥근 카드 두 장(입력/결과), 하늘색 체크 바탕의 정책 카드, 작은 수달 푸터. */
 :root{color-scheme:light dark;
---bg:light-dark(#ffffff,#0e2224);--ink:light-dark(#10302c,#e3f6f1);--sub:light-dark(#4b6662,#a5c4be);
---mint:light-dark(#bff2df,#123d38);--mintd:light-dark(#1f9e7c,#4fd6ae);--sky:light-dark(#d7efff,#16344a);--skyd:light-dark(#2b7fb8,#8fcdf5);
---line:light-dark(#d5e7e2,#24413f);--panel:light-dark(#f6fcfa,#132c2e);
---bad:light-dark(#d93a3f,#ff7a7d);--badbg:light-dark(#ffe3e3,#4a1f22);--warn:light-dark(#b9770e,#f3c060);--warnbg:light-dark(#fff1cf,#45361a);--info:var(--skyd);--infobg:var(--sky)}
+--bg:light-dark(#fbfefd,#11262a);--ink:light-dark(#4a3428,#f1e9e2);--sub:light-dark(#8a7365,#c7b8ad);
+--card:light-dark(#ffffff,#18343a);--line:light-dark(#e3efe9,#28474c);
+--mint:light-dark(#c9f2e3,#1d4a44);--mint2:light-dark(#e6f9f2,#173f3b);--mintd:light-dark(#2fae8a,#6be0bd);
+--sky:light-dark(#d9f0ff,#1b3d55);--sky2:light-dark(#eef8ff,#16334a);--skyd:light-dark(#3a8fcc,#9fd6fa);
+--brown:light-dark(#8a5a44,#e2b79f);
+--bad:light-dark(#e2555a,#ff8f91);--badbg:light-dark(#ffe8e8,#4d2427);--warn:light-dark(#c98a12,#f6c86a);--warnbg:light-dark(#fff4d6,#4a3a1b);--info:var(--skyd);--infobg:var(--sky2);
+--shadow:0 6px 0 light-dark(#d8eee5,#0b1d20),0 14px 30px light-dark(rgba(60,120,100,.10),rgba(0,0,0,.35))}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip}
-h1,h2,h3{font-family:"Gothic A1","Noto Sans KR",sans-serif;margin:0;text-wrap:balance}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip}
+body,textarea{word-break:keep-all}
+h1,h2,h3{font-family:"Jua","Noto Sans KR",sans-serif;font-weight:400;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.wrap{max-width:1180px;margin:0 auto}
 .band{padding:clamp(28px,4vw,56px) max(5vw,16px)}
-.wrap{max-width:1240px;margin:0 auto}
-header.band{background:var(--mint);padding-bottom:clamp(24px,3vw,40px)}
-header h1{font-size:clamp(30px,4.4vw,46px);line-height:1.08;font-weight:800}
-header p{margin:10px 0 0;color:var(--sub);max-width:62ch}
-.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+.check{background-color:var(--mint2);background-image:linear-gradient(90deg,light-dark(rgba(122,214,180,.35),rgba(107,224,189,.10)) 50%,transparent 50%),linear-gradient(light-dark(rgba(122,214,180,.35),rgba(107,224,189,.10)) 50%,transparent 50%);background-size:36px 36px}
+.check.sky{background-color:var(--sky2);background-image:linear-gradient(90deg,light-dark(rgba(140,200,240,.28),rgba(159,214,250,.08)) 50%,transparent 50%),linear-gradient(light-dark(rgba(140,200,240,.28),rgba(159,214,250,.08)) 50%,transparent 50%)}
+.hero{padding:clamp(28px,4vw,52px) max(5vw,16px) clamp(20px,3vw,36px)}
+.heroin{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(16px,3vw,40px);align-items:center;background:var(--card);border-radius:32px;padding:clamp(22px,3.5vw,40px) clamp(22px,4vw,48px);box-shadow:var(--shadow);border:2px solid var(--line)}
+.hero h1{font-size:clamp(32px,4.6vw,50px);line-height:1.1;color:var(--brown)}
+.hero h1 span{color:var(--mintd)}
+.hero p{margin:12px 0 0;color:var(--sub);max-width:56ch}
+.otter{position:relative;width:clamp(130px,17vw,190px)}
+.otter img{width:100%;height:auto;display:block;filter:drop-shadow(0 6px 0 light-dark(rgba(138,90,68,.10),rgba(0,0,0,.25)))}
+@media(prefers-reduced-motion:no-preference){.otter img{animation:bob 3.2s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-6px) rotate(-2deg)}}}
+.bubble{position:absolute;top:-8px;right:82%;white-space:nowrap;background:var(--sky);color:var(--ink);font-family:"Jua",sans-serif;font-size:16px;line-height:1.3;padding:10px 14px;border-radius:18px 18px 4px 18px;box-shadow:0 3px 0 light-dark(#bfe2f8,#0e2433)}
+@media(max-width:640px){.heroin{grid-template-columns:minmax(0,1fr)}.otter{justify-self:end;margin-top:-6px;width:120px}.bubble{top:10px;right:105%}}
+main.band{padding-top:clamp(16px,2vw,28px)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
 @media(max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
-.lab{font-size:14px;font-weight:700;margin:0 0 8px;display:block}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
-.chip{font:inherit;font-size:15px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
-.chip[aria-pressed=true]{background:var(--mintd);border-color:var(--mintd);color:light-dark(#fff,#062420);font-weight:700}
-.chip small{font-size:12px;opacity:.8;margin-left:4px}
-textarea{width:100%;min-height:340px;font:16px/1.65 "Noto Sans KR",sans-serif;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:14px;resize:vertical}
-textarea:focus,.chip:focus-visible,button:focus-visible{outline:3px solid var(--skyd);outline-offset:2px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:28px;padding:clamp(18px,2.4vw,28px);box-shadow:var(--shadow)}
+.lab{font-size:15px;font-weight:700;margin:0 0 8px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--brown)}
+.lab small{font-weight:400;color:var(--sub);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.chip{font:inherit;font-size:15px;min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;transition:transform .15s,background .15s}
+.chip:hover{background:var(--mint2)}
+.chip[aria-pressed=true]{background:var(--mint);border-color:var(--mintd);color:var(--ink);font-weight:700;box-shadow:0 3px 0 var(--mintd)}
+.chip small{font-size:12px;opacity:.75;margin-left:4px}
+textarea{width:100%;min-height:260px;font:16px/1.7 "Noto Sans KR",sans-serif;color:var(--ink);background:light-dark(#fffdfb,#142d32);border:2px dashed var(--line);border-radius:20px;padding:14px 16px;resize:vertical}
+textarea:focus{border-style:solid;border-color:var(--mintd);outline:none;box-shadow:0 0 0 4px var(--mint2)}
+.chip:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--skyd);outline-offset:2px}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
-.btn{font:inherit;font-weight:700;min-height:48px;padding:0 22px;border-radius:12px;border:0;cursor:pointer;background:var(--mintd);color:light-dark(#fff,#062420)}
-.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);font-weight:500}
+.btn{font:inherit;font-weight:700;min-height:48px;padding:0 22px;border-radius:999px;border:0;cursor:pointer;background:var(--mintd);color:light-dark(#fff,#0b2622);box-shadow:0 4px 0 light-dark(#1f8a6c,#3fa786);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 light-dark(#1f8a6c,#3fa786)}
+.btn.ghost{background:var(--card);color:var(--ink);border:2px solid var(--line);font-weight:500;box-shadow:0 3px 0 var(--line)}
+.btn.soft{background:var(--sky);color:var(--ink);box-shadow:0 4px 0 light-dark(#a9d6f3,#0e2433)}
 .btn:disabled{opacity:.55;cursor:wait}
 .count{margin-left:auto;font-size:13px;color:var(--sub)}
-.stampbox{display:flex;gap:18px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
-.stamp{font-family:"Black Han Sans",sans-serif;font-size:clamp(26px,3.4vw,34px);line-height:1;padding:14px 18px;border:4px solid currentColor;border-radius:12px;transform:rotate(-4deg);white-space:nowrap}
-.stamp.ok{color:var(--mintd)}.stamp.warn{color:var(--warn)}.stamp.bad{color:var(--bad)}.stamp.idle{color:var(--line)}
-@media(prefers-reduced-motion:no-preference){.stamp.pop{animation:pop .35s ease-out}@keyframes pop{0%{transform:scale(1.6) rotate(-10deg);opacity:0}100%{transform:scale(1) rotate(-4deg);opacity:1}}}
-.stampbox p{margin:0;flex:1 1 220px;color:var(--sub);font-size:15px}
-.tally{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
-.tag{font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.stampbox{display:flex;gap:16px;align-items:center;margin-bottom:14px;flex-wrap:wrap;background:var(--mint2);border-radius:22px;padding:16px 18px}
+.stamp{font-family:"Jua",sans-serif;font-size:clamp(24px,3vw,30px);line-height:1;padding:14px 18px;border:3px dashed currentColor;border-radius:18px;transform:rotate(-4deg);white-space:nowrap;background:var(--card)}
+.stamp.ok{color:var(--mintd)}.stamp.warn{color:var(--warn)}.stamp.bad{color:var(--bad)}.stamp.idle{color:var(--sub)}
+@media(prefers-reduced-motion:no-preference){.stamp.pop{animation:pop .4s cubic-bezier(.3,1.6,.5,1)}@keyframes pop{0%{transform:scale(1.5) rotate(-12deg);opacity:0}100%{transform:scale(1) rotate(-4deg);opacity:1}}}
+.stampbox p{margin:0;flex:1 1 200px;font-size:15px}
+.mini{width:52px;height:auto;flex:none}
+.tally{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 6px}
+.tag{font-size:13px;font-weight:700;padding:3px 11px;border-radius:999px;white-space:nowrap}
 .t-bad{background:var(--badbg);color:var(--bad)}.t-warn{background:var(--warnbg);color:var(--warn)}.t-info{background:var(--infobg);color:var(--info)}.t-ok{background:var(--mint);color:var(--mintd)}
 .issues{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.issues li{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg)}
+.issues li{border:2px solid var(--line);border-radius:18px;padding:12px 16px;background:var(--card)}
 .issues .h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
 .issues q{font-weight:700}
 .issues .fix{margin-top:6px;font-size:15px;color:var(--sub)}
 .issues .fix b{color:var(--mintd)}
-.tabs{display:flex;gap:6px;margin:18px 0 10px;flex-wrap:wrap}
-.tabs button{font:inherit;font-size:14px;min-height:40px;padding:0 14px;border-radius:10px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
-.tabs button[aria-selected=true]{background:var(--sky);border-color:var(--skyd);font-weight:700}
-.marked{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;max-height:360px;overflow:auto;font-size:15px}
-mark{border-radius:4px;padding:0 2px;color:inherit}
+.tabs{display:flex;gap:6px;margin:16px 0 12px;flex-wrap:wrap;background:var(--mint2);padding:5px;border-radius:999px;width:fit-content;max-width:100%}
+.tabs button{font:inherit;font-size:14px;min-height:40px;padding:0 16px;border-radius:999px;border:0;background:transparent;color:var(--sub);cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--card);color:var(--ink);font-weight:700;box-shadow:0 2px 0 var(--line)}
+.marked{white-space:pre-wrap;overflow-wrap:anywhere;background:light-dark(#fffdfb,#142d32);border:2px solid var(--line);border-radius:18px;padding:14px 16px;max-height:380px;overflow:auto;font-size:15px}
+mark{border-radius:6px;padding:0 3px;color:inherit}
 mark.bad{background:var(--badbg);box-shadow:inset 0 -2px var(--bad)}mark.warn{background:var(--warnbg);box-shadow:inset 0 -2px var(--warn)}mark.info{background:var(--infobg)}
 .empty{color:var(--sub);font-size:15px;padding:8px 0}
 .note{font-size:13px;color:var(--sub);margin-top:12px}
 .ai-out .sum{margin:0 0 12px}
+details summary{list-style:none}details summary::-webkit-details-marker{display:none}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px;margin-right:6px}@keyframes sp{to{transform:rotate(1turn)}}
-.policy{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:16px;margin-top:18px}
-.policy .card h3{font-size:19px;margin-bottom:4px}
-.policy ul{margin:10px 0 0;padding-left:18px;font-size:15px}.policy li{margin:3px 0}
-.policy a{color:var(--skyd);font-size:14px;overflow-wrap:anywhere}
+.policy{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:18px;margin-top:20px}
+.policy .card h3{font-size:22px;margin-bottom:6px;color:var(--brown)}
+.policy ul{margin:10px 0 0;padding-left:18px;font-size:15px}.policy li{margin:4px 0}.policy li::marker{color:var(--mintd)}
+.policy a{color:var(--skyd);font-size:14px;font-weight:700;overflow-wrap:anywhere}
 .meta{font-size:13px;color:var(--sub)}
-h2{font-size:clamp(24px,3vw,32px);line-height:1.1}
-footer{font-size:13px;color:var(--sub);border-top:1px solid var(--line)}
+h2{font-size:clamp(26px,3.2vw,34px);line-height:1.15;color:var(--brown)}
+.policyhead{background:var(--card);border-radius:24px;padding:18px 22px;display:inline-block;box-shadow:var(--shadow);border:2px solid var(--line);max-width:100%}
+footer{font-size:13px;color:var(--sub)}
+footer .wrap{display:flex;gap:14px;align-items:center}
+footer img{width:44px;height:auto;flex:none}
 </style>
 </head>
 <body>
-<header class="band"><div class="wrap">
-<h1>캐릭터챗 프롬프트 검수기</h1>
-<p>캐릭터 설정·소개·프롬프트를 붙여 넣고 플랫폼과 등급을 고르면, 키워드 검사와 AI 문맥 판정으로 공개 전에 정책 위반 가능성을 점검합니다. 결과는 참고용이며 실제 판정은 각 플랫폼 검수가 기준입니다.</p>
+<header class="hero check"><div class="wrap heroin">
+<div><h1>캐릭터챗 <span>프롬프트 검수기</span></h1>
+<p>캐릭터 설정을 붙여 넣고 플랫폼과 등급을 고르면, 키워드 검사와 AI 문맥 판정으로 공개 전에 정책 위반 가능성을 미리 점검해요. 결과는 참고용이고, 실제 판정은 각 플랫폼 검수가 기준이에요.</p></div>
+<div class="otter"><div class="bubble">올리기 전에<br>같이 확인해요!</div><img src="otter.png" alt="새싹을 단 수달 캐릭터" width="300" height="376"></div>
 </div></header>
 
 <main class="band"><div class="wrap grid">
@@ -96,7 +121,7 @@ footer{font-size:13px;color:var(--sub);border-top:1px solid var(--line)}
   <p class="note" style="margin-top:8px">비공개 항목에서 걸린 표현은 보통 위반으로 보지 않아 ‘참고’로 낮춥니다. 단, 미성년자·근친·성범죄·실존 인물·저작권 관련은 비공개여도 그대로 판정합니다.</p>
   <div class="row">
     <button class="btn" id="aiBtn" hidden>AI 문맥 판정</button>
-    <button class="btn ghost" id="promptBtn">AI 판정 프롬프트 복사</button>
+    <button class="btn soft" id="promptBtn">AI 판정 프롬프트 복사</button>
     <button class="btn ghost" id="sampleBtn">예시 넣기</button>
     <button class="btn ghost" id="clearBtn">지우기</button>
     <span class="count" id="count">0자</span>
@@ -107,7 +132,7 @@ footer{font-size:13px;color:var(--sub);border-top:1px solid var(--line)}
 </section>
 
 <section class="card" aria-label="검수 결과" aria-live="polite">
-  <div class="stampbox"><div class="stamp idle" id="stamp">검수 대기</div><p id="verdictTxt">왼쪽에 내용을 넣으면 결과가 여기 표시됩니다.</p></div>
+  <div class="stampbox"><img class="mini" src="otter.png" alt="" width="52" height="65"><div class="stamp idle" id="stamp">검수 대기</div><p id="verdictTxt">왼쪽에 내용을 넣으면 결과가 여기 표시됩니다.</p></div>
   <div class="tally" id="tally"></div>
   <div class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-t="kw">키워드 검사</button>
@@ -121,15 +146,13 @@ footer{font-size:13px;color:var(--sub);border-top:1px solid var(--line)}
 </section>
 </div></main>
 
-<section class="band" style="background:var(--sky)"><div class="wrap">
-<h2>플랫폼별 반영 기준</h2>
-<p class="meta" style="font-size:15px;margin:8px 0 0">2026년 11월 24일에 공개 문서를 확인해 요약했습니다. 정책은 수시로 바뀌니 공개 전 원문을 꼭 다시 확인하세요.</p>
+<section class="band check sky"><div class="wrap">
+<div class="policyhead"><h2>플랫폼별 반영 기준</h2>
+<p class="meta" style="font-size:15px;margin:6px 0 0">2026년 11월 24일에 공개 문서를 확인해 요약했습니다. 정책은 수시로 바뀌니 공개 전 원문을 꼭 다시 확인하세요.</p></div>
 <div class="policy" id="policy"></div>
 </div></section>
 
-<footer class="band"><div class="wrap">
-이 도구는 플랫폼 공식 서비스가 아니며 검수 통과를 보장하지 않습니다. 키워드 검사는 단어만 보므로 오탐·누락이 있을 수 있고, AI 판정도 틀릴 수 있습니다. 수정안은 규정을 지키는 방향으로만 제시하며, 필터를 피해 가는 표현은 안내하지 않습니다.
-</div></footer>
+<footer class="band"><div class="wrap"><img src="otter.png" alt="" width="44" height="55"><p style="margin:0">이 도구는 플랫폼 공식 서비스가 아니며 검수 통과를 보장하지 않습니다. 키워드 검사는 단어만 보므로 오탐·누락이 있을 수 있고, AI 판정도 틀릴 수 있습니다. 수정안은 규정을 지키는 방향으로만 제시하며, 필터를 피해 가는 표현은 안내하지 않습니다.</p></div></footer>
 
 <script>
 {
