@@ -65,7 +65,12 @@ textarea:focus{border-style:solid;border-color:var(--mintd);outline:none;box-sha
 .stamp.ok{color:var(--mintd)}.stamp.warn{color:var(--warn)}.stamp.bad{color:var(--bad)}.stamp.idle{color:var(--sub)}
 @media(prefers-reduced-motion:no-preference){.stamp.pop{animation:pop .4s cubic-bezier(.3,1.6,.5,1)}@keyframes pop{0%{transform:scale(1.5) rotate(-12deg);opacity:0}100%{transform:scale(1) rotate(-4deg);opacity:1}}}
 .stampbox p{margin:0;flex:1 1 200px;font-size:15px}
-.mini{width:52px;height:auto;flex:none}
+.mini{flex:none;display:inline-flex}
+.otsvg{display:block}
+.inputcard{position:relative}
+.perch{position:absolute;top:-42px;right:28px;pointer-events:none}
+@media(prefers-reduced-motion:no-preference){.mini .otsvg{animation:hop .5s ease-out}@keyframes hop{0%{transform:translateY(8px) scale(.9)}60%{transform:translateY(-4px)}100%{transform:none}}}
+.policyhead{display:inline-flex!important;gap:14px;align-items:center}
 .tally{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 6px}
 .tag{font-size:13px;font-weight:700;padding:3px 11px;border-radius:999px;white-space:nowrap}
 .t-bad{background:var(--badbg);color:var(--bad)}.t-warn{background:var(--warnbg);color:var(--warn)}.t-info{background:var(--infobg);color:var(--info)}.t-ok{background:var(--mint);color:var(--mintd)}
@@ -95,10 +100,11 @@ h2{font-size:clamp(26px,3.2vw,34px);line-height:1.15;color:var(--brown)}
 .policyhead{background:var(--card);border-radius:24px;padding:18px 22px;display:inline-block;box-shadow:var(--shadow);border:2px solid var(--line);max-width:100%}
 footer{font-size:13px;color:var(--sub)}
 footer .wrap{display:flex;gap:14px;align-items:center}
-footer img{width:44px;height:auto;flex:none}
+footer .ot{flex:none}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="crayon"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6"/></filter></svg>
 <header class="hero check"><div class="wrap heroin">
 <div><h1>캐릭터챗 <span>프롬프트 검수기</span></h1>
 <p>캐릭터 설정을 붙여 넣고 플랫폼과 등급을 고르면, 키워드 검사와 AI 문맥 판정으로 공개 전에 정책 위반 가능성을 미리 점검해요. 결과는 참고용이고, 실제 판정은 각 플랫폼 검수가 기준이에요.</p></div>
@@ -106,7 +112,8 @@ footer img{width:44px;height:auto;flex:none}
 </div></header>
 
 <main class="band"><div class="wrap grid">
-<section class="card" aria-label="검수할 프롬프트">
+<section class="card inputcard" aria-label="검수할 프롬프트">
+  <span class="perch" data-otter="happy peek 72"></span>
   <span class="lab" id="pl">플랫폼</span>
   <div class="chips" id="plats" role="group" aria-labelledby="pl"></div>
   <span class="lab" id="gl">공개 등급</span>
@@ -132,7 +139,7 @@ footer img{width:44px;height:auto;flex:none}
 </section>
 
 <section class="card" aria-label="검수 결과" aria-live="polite">
-  <div class="stampbox"><img class="mini" src="otter.png" alt="" width="52" height="65"><div class="stamp idle" id="stamp">검수 대기</div><p id="verdictTxt">왼쪽에 내용을 넣으면 결과가 여기 표시됩니다.</p></div>
+  <div class="stampbox"><span class="mini" id="stampOtter"></span><div class="stamp idle" id="stamp">검수 대기</div><p id="verdictTxt">왼쪽에 내용을 넣으면 결과가 여기 표시됩니다.</p></div>
   <div class="tally" id="tally"></div>
   <div class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-t="kw">키워드 검사</button>
@@ -147,15 +154,73 @@ footer img{width:44px;height:auto;flex:none}
 </div></main>
 
 <section class="band check sky"><div class="wrap">
-<div class="policyhead"><h2>플랫폼별 반영 기준</h2>
-<p class="meta" style="font-size:15px;margin:6px 0 0">2026년 11월 24일에 공개 문서를 확인해 요약했습니다. 정책은 수시로 바뀌니 공개 전 원문을 꼭 다시 확인하세요.</p></div>
+<div class="policyhead"><span data-otter="normal magnifier 64"></span><div><h2>플랫폼별 반영 기준</h2>
+<p class="meta" style="font-size:15px;margin:6px 0 0">2026년 11월 24일에 공개 문서를 확인해 요약했습니다. 정책은 수시로 바뀌니 공개 전 원문을 꼭 다시 확인하세요.</p></div></div>
 <div class="policy" id="policy"></div>
 </div></section>
 
-<footer class="band"><div class="wrap"><img src="otter.png" alt="" width="44" height="55"><p style="margin:0">이 도구는 플랫폼 공식 서비스가 아니며 검수 통과를 보장하지 않습니다. 키워드 검사는 단어만 보므로 오탐·누락이 있을 수 있고, AI 판정도 틀릴 수 있습니다. 수정안은 규정을 지키는 방향으로만 제시하며, 필터를 피해 가는 표현은 안내하지 않습니다.</p></div></footer>
+<footer class="band"><div class="wrap"><span class="ot" data-otter="happy wave 54"></span><p style="margin:0">이 도구는 플랫폼 공식 서비스가 아니며 검수 통과를 보장하지 않습니다. 키워드 검사는 단어만 보므로 오탐·누락이 있을 수 있고, AI 판정도 틀릴 수 있습니다. 수정안은 규정을 지키는 방향으로만 제시하며, 필터를 피해 가는 표현은 안내하지 않습니다.</p></div></footer>
 
 <script>
 {
+/* 수달 변형 그리기: mood = normal | happy | worried | shocked | sleepy, pose = stand | wave | magnifier | sign | peek */
+function otter(o){
+ const mood=o.mood||'normal',pose=o.pose||'stand',sz=o.size||80;
+ const L='#7b4733',F='#c48f7c',B='#f8e2cc',G='#8cc152',GL='#6fa83a',P='#f4a7a3';
+ const st=`stroke="${L}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"`;
+ const peek=pose==='peek';
+ let s='';
+ if(!peek){
+  // tail
+  s+=`<path d="M70 104 q20 2 22 -12 q2 -8 -6 -8 q-4 0 -4 6 q-1 8 -14 8" fill="${F}" ${st}/>`;
+  // feet
+  s+=`<ellipse cx="40" cy="116" rx="8" ry="6" fill="${F}" ${st}/><ellipse cx="60" cy="116" rx="8" ry="6" fill="${F}" ${st}/>`;
+  // body
+  s+=`<path d="M28 82 q-4 34 22 34 q26 0 22 -34 z" fill="${F}" ${st}/>`;
+  s+=`<ellipse cx="50" cy="98" rx="14" ry="14" fill="${B}"/>`;
+  // arms
+  if(pose==='wave') s+=`<ellipse cx="16" cy="70" rx="6" ry="10" transform="rotate(35 16 70)" fill="${F}" ${st}/><ellipse cx="73" cy="92" rx="6" ry="9" transform="rotate(-20 73 92)" fill="${F}" ${st}/><path d="M5 64 l-5 -3 M6 74 l-6 1 M10 56 l-3 -5" stroke="${L}" stroke-width="2.4" stroke-linecap="round" fill="none"/>`;
+  else if(pose==='magnifier') s+=`<ellipse cx="27" cy="92" rx="6" ry="9" transform="rotate(20 27 92)" fill="${F}" ${st}/><path d="M74 94 l12 -14" stroke="${L}" stroke-width="5" stroke-linecap="round"/><circle cx="91" cy="73" r="10" fill="#e6f6ff" fill-opacity=".85" ${st}/><path d="M86 69 q3 -3 7 -2" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/><ellipse cx="74" cy="94" rx="6" ry="8" fill="${F}" ${st}/>`;
+  else if(pose==='sign') s+=`<rect x="31" y="84" width="38" height="28" rx="7" fill="#fff" ${st}/><path d="M44 91 l12 14 M56 91 l-12 14" stroke="#e2555a" stroke-width="4" stroke-linecap="round"/><ellipse cx="30" cy="96" rx="6" ry="7" fill="${F}" ${st}/><ellipse cx="70" cy="96" rx="6" ry="7" fill="${F}" ${st}/>`;
+  else s+=`<ellipse cx="27" cy="92" rx="6" ry="9" transform="rotate(20 27 92)" fill="${F}" ${st}/><ellipse cx="73" cy="92" rx="6" ry="9" transform="rotate(-20 73 92)" fill="${F}" ${st}/>`;
+ }
+ // ears + head
+ s+=`<circle cx="21" cy="40" r="8" fill="${F}" ${st}/><circle cx="79" cy="40" r="8" fill="${F}" ${st}/>`;
+ s+=`<path d="M16 58 q0 -34 34 -34 q34 0 34 34 q0 26 -34 26 q-34 0 -34 -26 z" fill="${F}" ${st}/>`;
+ s+=`<path d="M19 62 q8 -12 31 -12 q23 0 31 12 q-2 20 -31 20 q-29 0 -31 -20 z" fill="${B}"/>`;
+ // sprout
+ s+=`<path d="M50 25 q0 -7 0 -10" stroke="${GL}" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M50 16 q-12 -10 -18 -2 q4 8 18 2 z" fill="${G}" stroke="${GL}" stroke-width="2"/><path d="M50 16 q12 -10 18 -2 q-4 8 -18 2 z" fill="${G}" stroke="${GL}" stroke-width="2"/>`;
+ // whiskers
+ s+=`<path d="M22 63 l9 1 M23 69 l8 -2 M78 63 l-9 1 M77 69 l-8 -2" stroke="${L}" stroke-width="2" stroke-linecap="round"/>`;
+ // eyes
+ const E={
+  normal:`<circle cx="39" cy="53" r="3.3" fill="${L}"/><circle cx="61" cy="53" r="3.3" fill="${L}"/>`,
+  happy:`<path d="M35 55 q4 -6 8 0 M57 55 q4 -6 8 0" stroke="${L}" stroke-width="3" stroke-linecap="round" fill="none"/>`,
+  worried:`<circle cx="39" cy="54" r="3.1" fill="${L}"/><circle cx="61" cy="54" r="3.1" fill="${L}"/><path d="M34 46 l8 2 M66 46 l-8 2" stroke="${L}" stroke-width="2.4" stroke-linecap="round"/>`,
+  shocked:`<circle cx="39" cy="53" r="4.4" fill="${L}"/><circle cx="61" cy="53" r="4.4" fill="${L}"/><circle cx="40.4" cy="51.6" r="1.4" fill="#fff"/><circle cx="62.4" cy="51.6" r="1.4" fill="#fff"/>`,
+  sleepy:`<path d="M35 53 q4 4 8 0 M57 53 q4 4 8 0" stroke="${L}" stroke-width="3" stroke-linecap="round" fill="none"/>`
+ };
+ const M={
+  normal:`<path d="M44 60 q3 3 6 0 q3 3 6 0" ${st} stroke-width="2.6" fill="none"/>`,
+  happy:`<path d="M44 59 q6 8 12 0 z" fill="#d9786f" ${st} stroke-width="2.4"/>`,
+  worried:`<path d="M43 63 q2.3 -3 4.6 0 q2.3 3 4.6 0 q2.3 -3 4.6 0" ${st} stroke-width="2.4" fill="none"/>`,
+  shocked:`<ellipse cx="50" cy="63" rx="4" ry="5" fill="#d9786f" ${st} stroke-width="2.4"/>`,
+  sleepy:`<path d="M46 61 q4 2 8 0" ${st} stroke-width="2.4" fill="none"/>`
+ };
+ s+=E[mood]+M[mood];
+ if(mood==='happy'||mood==='shocked') s+=`<ellipse cx="28" cy="61" rx="5" ry="3" fill="${P}" opacity=".7"/><ellipse cx="72" cy="61" rx="5" ry="3" fill="${P}" opacity=".7"/>`;
+ if(mood==='worried') s+=`<path d="M86 34 q-5 8 0 11 q5 -3 0 -11 z" fill="#9fd6fa" stroke="#3a8fcc" stroke-width="1.6"/>`;
+ if(mood==='shocked') s+=`<path d="M8 30 l4 7 M4 42 l7 2 M92 30 l-4 7 M96 42 l-7 2" stroke="#e2555a" stroke-width="2.6" stroke-linecap="round"/>`;
+ if(mood==='sleepy') s+=`<text x="80" y="24" font-family="Jua,sans-serif" font-size="13" fill="#3a8fcc">z</text><text x="88" y="14" font-family="Jua,sans-serif" font-size="10" fill="#3a8fcc">z</text>`;
+ if(mood==='happy'&&pose==='wave') s+=`<path d="M88 20 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z" fill="#f6c86a"/>`;
+ const vb=peek?'0 4 100 82':'0 4 100 122';
+ const h=Math.round(sz*(peek?82:122)/100);
+ return `<svg class="otsvg" viewBox="${vb}" width="${sz}" height="${h}" aria-hidden="true" style="overflow:visible${o.flip?';transform:scaleX(-1)':''}"><g filter="url(#crayon)">${s}</g></svg>`;
+}
+
+const MOODS={idle:['sleepy','stand'],ok:['happy','wave'],warn:['worried','stand'],bad:['shocked','sign']};
+function setOtter(k){const [m,p]=MOODS[k];document.getElementById('stampOtter').innerHTML=otter({mood:m,pose:p,size:64})}
+for(const el of document.querySelectorAll('[data-otter]')){const [m,p,s]=el.dataset.otter.split(' ');el.innerHTML=otter({mood:m,pose:p,size:+s})}
 const P={
  common:{name:'공통 기준',status:'자체 기준',date:'국내 플랫폼 공통 금지 항목 종합',url:'',rules:['미성년자(또는 미성년자로 보이는 캐릭터)의 성적 묘사·암시는 모든 등급에서 금지','근친·수간·시체성애·성범죄 미화, 불법 촬영 소재 금지','과도한 고어·잔혹 묘사, 범죄·자살·약물 미화 금지','실존 인물 무단 사용, 저작권 침해(무단 2차 창작) 금지','혐오·차별 표현, 스팸·외부 유도 금지','세이프티 등급은 성적 행위·암시 자체를 금지']},
  caveduck:{name:'케이브덕',status:'공식 문서 확인',date:'캐릭터 제작 가이드 (시행일 미표기)',url:'https://docs.channel.io/caveduckdocs/ko/articles/%EC%BA%90%EB%A6%AD%ED%84%B0-%EC%A0%9C%EC%9E%91-%EA%B0%80%EC%9D%B4%EB%93%9C-5da6343e',rules:['교복·학교 중심 배경·어린 외형 등 미성년자로 인식될 설정은 설정상 성인이어도 불가','중·고교 교사 직업은 가능하나 학교·학생이 주된 설정이면 불가, 과거 시점 학교 배경도 불가','언세이프 캐릭터에 미성년 등장인물 포함 불가','인간 외형 캐릭터의 어린 시절·육아 설정 불가. 인외 예외 시 “미성년자·육아 대상과 성적 상호작용 불가” 지침을 프롬프트와 설명 모두에 넣어야 함','혈연 근친 불가, 의남매·소꿉친구 등은 비혈연임을 명확히 기재','성매매·유혹·접대·페로몬·최면·체액·특정 부위 강조·성기 지칭 단어가 있으면 ‘청소년 이용 불가’ 필수','다른 AI 캐릭터 플랫폼 이름 언급, 타 플랫폼 유도 링크 불가','실존 인물 기반은 수익화 제한, 타인 저작권 캐릭터는 수익화 제한 옵션 필수']},
@@ -266,18 +331,18 @@ const SVL={bad:'위반',warn:'주의',info:'참고'};
 const $=id=>document.getElementById(id);
 let last={hits:[],notes:[]};
 
-function setStamp(cls,label,txt){const s=$('stamp');s.className='stamp '+cls;void s.offsetWidth;s.classList.add('pop');s.textContent=label;$('verdictTxt').textContent=txt}
+function setStamp(cls,label,txt){setOtter(cls);const s=$('stamp');s.className='stamp '+cls;void s.offsetWidth;s.classList.add('pop');s.textContent=label;$('verdictTxt').textContent=txt}
 function run(){
  const pub=$('txt').value,pv=$('txt2').value,t=pub+pv;$('count').textContent=`공개 ${pub.length.toLocaleString()}자 · 비공개 ${pv.length.toLocaleString()}자`;
  try{localStorage.setItem('pc_draft',pub);localStorage.setItem('pc_draft2',pv)}catch(e){}
- if(!t.trim()){$('stamp').className='stamp idle';$('stamp').textContent='검수 대기';$('verdictTxt').textContent='왼쪽에 내용을 넣으면 결과가 여기 표시됩니다.';$('tally').innerHTML='';$('kwList').innerHTML='<li class="empty" style="border:0;background:none;padding:0">아직 입력된 내용이 없습니다.</li>';$('marked').textContent='';last={hits:[],notes:[]};return}
+ if(!t.trim()){setOtter('idle');$('stamp').className='stamp idle';$('stamp').textContent='검수 대기';$('verdictTxt').textContent='왼쪽에 내용을 넣으면 결과가 여기 표시됩니다.';$('tally').innerHTML='';$('kwList').innerHTML='<li class="empty" style="border:0;background:none;padding:0">아직 입력된 내용이 없습니다.</li>';$('marked').textContent='';last={hits:[],notes:[]};return}
  const hits=scanAll(pub,pv),notes=extra(pub,pv);last={hits,notes};
  const groups={};for(const h of hits){const k=h.part+'|'+h.cat+'|'+h.sv;(groups[k]=groups[k]||{part:h.part,cat:h.cat,sv:h.sv,note:h.privNote,orig:sev(h.cat,plat,grade),terms:new Set()}).terms.add(h.term)}
  const items=[...Object.values(groups).map(g=>({part:g.part,sv:g.sv,cat:g.cat,term:[...g.terms].slice(0,8).join(', '),why:g.note?(g.note+((WHY[g.cat]||{})[g.orig]?' 공개 항목이었다면: '+WHY[g.cat][g.orig]:'')):((WHY[g.cat]||{})[g.sv]||'')})),...notes];
  const rank={bad:0,warn:1,info:2};items.sort((a,b)=>rank[a.sv]-rank[b.sv]);
  const c={bad:0,warn:0,info:0};items.forEach(i=>c[i.sv]++);
  $('tally').innerHTML=(c.bad?`<span class="tag t-bad">위반 ${c.bad}</span>`:'')+(c.warn?`<span class="tag t-warn">주의 ${c.warn}</span>`:'')+(c.info?`<span class="tag t-info">참고 ${c.info}</span>`:'')+(!items.length?'<span class="tag t-ok">걸린 키워드 없음</span>':'');
- $('kwList').innerHTML=items.length?items.map(i=>`<li><div class="h"><span class="tag t-${i.sv}">${SVL[i.sv]}</span><b>${esc(CAT[i.cat])}</b>${i.part?`<span class="meta">${i.part==='pub'?'공개 항목':'비공개 항목'}</span>`:''}</div><div><q>${esc(i.term)}</q></div>${i.why?`<div class="fix">${esc(i.why)}</div>`:''}</li>`).join(''):'<li class="empty" style="border:0;background:none;padding:0">키워드 기준으로는 걸리는 항목이 없습니다. 문맥상 문제는 AI 판정으로 한 번 더 확인하세요.</li>';
+ $('kwList').innerHTML=items.length?items.map(i=>`<li><div class="h"><span class="tag t-${i.sv}">${SVL[i.sv]}</span><b>${esc(CAT[i.cat])}</b>${i.part?`<span class="meta">${i.part==='pub'?'공개 항목':'비공개 항목'}</span>`:''}</div><div><q>${esc(i.term)}</q></div>${i.why?`<div class="fix">${esc(i.why)}</div>`:''}</li>`).join(''):'<li class="empty" style="border:0;background:none;padding:0;display:flex;gap:12px;align-items:center">'+otter({mood:'happy',pose:'stand',size:48})+'<span>키워드 기준으로는 걸리는 항목이 없습니다. 문맥상 문제는 AI 판정으로 한 번 더 확인하세요.</span></li>';
  const mk=(src,part)=>{let h='',p=0;for(const x of hits.filter(y=>y.part===part)){h+=esc(src.slice(p,x.s))+`<mark class="${x.sv}" title="${esc(CAT[x.cat]+' · '+SVL[x.sv])}">${esc(src.slice(x.s,x.e))}</mark>`;p=x.e}return h+esc(src.slice(p))};
  $('marked').innerHTML=`<b>공개 항목</b>\n${pub.trim()?mk(pub,'pub'):'(비어 있음)'}\n\n<b>비공개 항목</b>\n${pv.trim()?mk(pv,'priv'):'(비어 있음)'}`;
  const pn=P[plat].name+' · '+(grade==='safe'?'세이프티':'언세이프');
@@ -348,7 +413,7 @@ function renderAI(d){
 $('aiBtn').addEventListener('click',async()=>{
  const pub=$('txt').value.trim(),pv=$('txt2').value.trim();if(!(pub||pv)||busy||!sample)return;
  busy=true;const b=$('aiBtn');b.disabled=true;b.innerHTML='<span class="spin"></span>판정 중';
- document.querySelector('[data-t=ai]').click();$('aiEmpty').hidden=true;$('aiRes').innerHTML='<p class="empty"><span class="spin"></span>문맥을 읽고 있습니다…</p>';
+ document.querySelector('[data-t=ai]').click();$('aiEmpty').hidden=true;$('aiRes').innerHTML=`<div class="empty" style="display:flex;gap:12px;align-items:center">${otter({mood:'normal',pose:'magnifier',size:56})}<span><span class="spin"></span>수달이 문맥을 꼼꼼히 읽는 중…</span></div>`;
  try{const r=await sample(buildPrompt(pub,pv),{modelTier:'default'});renderAI(parseJSON(r.text))}
  catch(e){$('aiRes').innerHTML='';$('aiEmpty').hidden=false;$('aiEmpty').textContent=e&&e.code==='rate_limited'?'요청이 많습니다. 잠시 뒤 다시 시도해 주세요.':e&&e.code==='not_granted'?'AI 판정 사용이 허용되지 않았습니다. 키워드 검사 결과를 참고하세요.':'AI 판정 결과를 읽지 못했습니다. 다시 시도해 주세요.'}
  finally{busy=false;b.disabled=false;b.textContent='AI 문맥 판정'}
