@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>캐릭터챗 프롬프트 검수기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;700&family=Black+Han+Sans&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 꼼꼼한 검수 담당자의 체크 시트. 차분하고 실무적.
+   IDEA: 심사 서류에 찍히는 검수 도장 + 형광펜으로 표시한 원고.
+   PICTURE: 입력 원고와 결과 도장, 원문 위 형광펜 하이라이트.
+   COLOUR and TYPE: 민트 필드 + 하늘색 보조 + 코랄 경고. Gothic A1 / Noto Sans KR / 도장은 Black Han Sans.
+   LAYOUT: 상단 민트 밴드, 좌측 원고 입력, 우측 판정 결과, 하단 플랫폼별 정책 요약. */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0e2224);--ink:light-dark(#10302c,#e3f6f1);--sub:light-dark(#4b6662,#a5c4be);
+--mint:light-dark(#bff2df,#123d38);--mintd:light-dark(#1f9e7c,#4fd6ae);--sky:light-dark(#d7efff,#16344a);--skyd:light-dark(#2b7fb8,#8fcdf5);
+--line:light-dark(#d5e7e2,#24413f);--panel:light-dark(#f6fcfa,#132c2e);
+--bad:light-dark(#d93a3f,#ff7a7d);--badbg:light-dark(#ffe3e3,#4a1f22);--warn:light-dark(#b9770e,#f3c060);--warnbg:light-dark(#fff1cf,#45361a);--info:var(--skyd);--infobg:var(--sky)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Gothic A1","Noto Sans KR",sans-serif;margin:0;text-wrap:balance}
+.band{padding:clamp(28px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+header.band{background:var(--mint);padding-bottom:clamp(24px,3vw,40px)}
+header h1{font-size:clamp(30px,4.4vw,46px);line-height:1.08;font-weight:800}
+header p{margin:10px 0 0;color:var(--sub);max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
+.lab{font-size:14px;font-weight:700;margin:0 0 8px;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{font:inherit;font-size:15px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--mintd);border-color:var(--mintd);color:light-dark(#fff,#062420);font-weight:700}
+.chip small{font-size:12px;opacity:.8;margin-left:4px}
+textarea{width:100%;min-height:340px;font:16px/1.65 "Noto Sans KR",sans-serif;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:14px;resize:vertical}
+textarea:focus,.chip:focus-visible,button:focus-visible{outline:3px solid var(--skyd);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.btn{font:inherit;font-weight:700;min-height:48px;padding:0 22px;border-radius:12px;border:0;cursor:pointer;background:var(--mintd);color:light-dark(#fff,#062420)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);font-weight:500}
+.btn:disabled{opacity:.55;cursor:wait}
+.count{margin-left:auto;font-size:13px;color:var(--sub)}
+.stampbox{display:flex;gap:18px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.stamp{font-family:"Black Han Sans",sans-serif;font-size:clamp(26px,3.4vw,34px);line-height:1;padding:14px 18px;border:4px solid currentColor;border-radius:12px;transform:rotate(-4deg);white-space:nowrap}
+.stamp.ok{color:var(--mintd)}.stamp.warn{color:var(--warn)}.stamp.bad{color:var(--bad)}.stamp.idle{color:var(--line)}
+@media(prefers-reduced-motion:no-preference){.stamp.pop{animation:pop .35s ease-out}@keyframes pop{0%{transform:scale(1.6) rotate(-10deg);opacity:0}100%{transform:scale(1) rotate(-4deg);opacity:1}}}
+.stampbox p{margin:0;flex:1 1 220px;color:var(--sub);font-size:15px}
+.tally{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.tag{font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.t-bad{background:var(--badbg);color:var(--bad)}.t-warn{background:var(--warnbg);color:var(--warn)}.t-info{background:var(--infobg);color:var(--info)}.t-ok{background:var(--mint);color:var(--mintd)}
+.issues{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.issues li{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg)}
+.issues .h{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
+.issues q{font-weight:700}
+.issues .fix{margin-top:6px;font-size:15px;color:var(--sub)}
+.issues .fix b{color:var(--mintd)}
+.tabs{display:flex;gap:6px;margin:18px 0 10px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:14px;min-height:40px;padding:0 14px;border-radius:10px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--sky);border-color:var(--skyd);font-weight:700}
+.marked{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;max-height:360px;overflow:auto;font-size:15px}
+mark{border-radius:4px;padding:0 2px;color:inherit}
+mark.bad{background:var(--badbg);box-shadow:inset 0 -2px var(--bad)}mark.warn{background:var(--warnbg);box-shadow:inset 0 -2px var(--warn)}mark.info{background:var(--infobg)}
+.empty{color:var(--sub);font-size:15px;padding:8px 0}
+.note{font-size:13px;color:var(--sub);margin-top:12px}
+.ai-out .sum{margin:0 0 12px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px;margin-right:6px}@keyframes sp{to{transform:rotate(1turn)}}
+.policy{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:16px;margin-top:18px}
+.policy .card h3{font-size:19px;margin-bottom:4px}
+.policy ul{margin:10px 0 0;padding-left:18px;font-size:15px}.policy li{margin:3px 0}
+.policy a{color:var(--skyd);font-size:14px;overflow-wrap:anywhere}
+.meta{font-size:13px;color:var(--sub)}
+h2{font-size:clamp(24px,3vw,32px);line-height:1.1}
+footer{font-size:13px;color:var(--sub);border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header class="band"><div class="wrap">
+<h1>캐릭터챗 프롬프트 검수기</h1>
+<p>캐릭터 설정·소개·프롬프트를 붙여 넣고 플랫폼과 등급을 고르면, 키워드 검사와 AI 문맥 판정으로 공개 전에 정책 위반 가능성을 점검합니다. 결과는 참고용이며 실제 판정은 각 플랫폼 검수가 기준입니다.</p>
+</div></header>
+
+<main class="band"><div class="wrap grid">
+<section class="card" aria-label="검수할 프롬프트">
+  <span class="lab" id="pl">플랫폼</span>
+  <div class="chips" id="plats" role="group" aria-labelledby="pl"></div>
+  <span class="lab" id="gl">공개 등급</span>
+  <div class="chips" id="grades" role="group" aria-labelledby="gl">
+    <button class="chip" data-g="safe" aria-pressed="true">세이프티 <small>청소년 이용 가능</small></button>
+    <button class="chip" data-g="unsafe" aria-pressed="false">언세이프 <small>성인 전용</small></button>
+  </div>
+  <label class="lab" for="txt">공개 항목 <small style="font-weight:400;color:var(--sub)">이름 · 한 줄 소개 · 상세 소개 · 태그 · 첫 대사 등 유저에게 보이는 곳</small></label>
+  <textarea id="txt" placeholder="유저에게 보이는 내용을 붙여 넣으세요."></textarea>
+  <label class="lab" for="txt2" style="margin-top:16px">비공개 항목 <small style="font-weight:400;color:var(--sub)">프롬프트 · 상세 설정 · 로어북 등 유저에게 안 보이는 곳</small></label>
+  <textarea id="txt2" style="min-height:220px" placeholder="유저에게 보이지 않는 프롬프트·설정을 붙여 넣으세요."></textarea>
+  <p class="note" style="margin-top:8px">비공개 항목에서 걸린 표현은 보통 위반으로 보지 않아 ‘참고’로 낮춥니다. 단, 미성년자·근친·성범죄·실존 인물·저작권 관련은 비공개여도 그대로 판정합니다.</p>
+  <div class="row">
+    <button class="btn" id="aiBtn" hidden>AI 문맥 판정</button>
+    <button class="btn ghost" id="promptBtn">AI 판정 프롬프트 복사</button>
+    <button class="btn ghost" id="sampleBtn">예시 넣기</button>
+    <button class="btn ghost" id="clearBtn">지우기</button>
+    <span class="count" id="count">0자</span>
+  </div>
+  <p class="note" id="aiNote">키워드 검사는 입력하는 즉시 실행됩니다.</p>
+  <p class="note" id="promptMsg">‘AI 판정 프롬프트 복사’를 누르면 선택한 플랫폼 규정과 입력 내용이 담긴 판정 요청문이 복사됩니다. 쓰시는 Claude·ChatGPT·Gemini 등에 붙여 넣으면 문맥 판정을 받을 수 있어요.</p>
+  <details id="promptBox" hidden><summary class="note" style="cursor:pointer">복사가 안 되면 여기서 직접 선택해 복사하세요</summary><textarea id="promptTxt" readonly style="min-height:200px;margin-top:8px;font-size:14px"></textarea></details>
+</section>
+
+<section class="card" aria-label="검수 결과" aria-live="polite">
+  <div class="stampbox"><div class="stamp idle" id="stamp">검수 대기</div><p id="verdictTxt">왼쪽에 내용을 넣으면 결과가 여기 표시됩니다.</p></div>
+  <div class="tally" id="tally"></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-t="kw">키워드 검사</button>
+    <button role="tab" aria-selected="false" data-t="ai">AI 판정</button>
+    <button role="tab" aria-selected="false" data-t="mk">원문 표시</button>
+  </div>
+  <div id="p-kw"><ul class="issues" id="kwList"></ul></div>
+  <div id="p-ai" hidden class="ai-out"><p class="empty" id="aiEmpty">‘AI 문맥 판정’을 누르면 문맥까지 읽고 위험 문장·근거 규정·수정 방향을 알려 드립니다.</p><div id="aiRes"></div></div>
+  <div id="p-mk" hidden><div class="marked" id="marked"></div></div>
+  <div class="row"><button class="btn ghost" id="copyBtn">결과 복사</button><span class="note" id="copyMsg" style="margin:0"></span></div>
+</section>
+</div></main>
+
+<section class="band" style="background:var(--sky)"><div class="wrap">
+<h2>플랫폼별 반영 기준</h2>
+<p class="meta" style="font-size:15px;margin:8px 0 0">2026년 11월 24일에 공개 문서를 확인해 요약했습니다. 정책은 수시로 바뀌니 공개 전 원문을 꼭 다시 확인하세요.</p>
+<div class="policy" id="policy"></div>
+</div></section>
+
+<footer class="band"><div class="wrap">
+이 도구는 플랫폼 공식 서비스가 아니며 검수 통과를 보장하지 않습니다. 키워드 검사는 단어만 보므로 오탐·누락이 있을 수 있고, AI 판정도 틀릴 수 있습니다. 수정안은 규정을 지키는 방향으로만 제시하며, 필터를 피해 가는 표현은 안내하지 않습니다.
+</div></footer>
+
+<script>
+{
+const P={
+ common:{name:'공통 기준',status:'자체 기준',date:'국내 플랫폼 공통 금지 항목 종합',url:'',rules:['미성년자(또는 미성년자로 보이는 캐릭터)의 성적 묘사·암시는 모든 등급에서 금지','근친·수간·시체성애·성범죄 미화, 불법 촬영 소재 금지','과도한 고어·잔혹 묘사, 범죄·자살·약물 미화 금지','실존 인물 무단 사용, 저작권 침해(무단 2차 창작) 금지','혐오·차별 표현, 스팸·외부 유도 금지','세이프티 등급은 성적 행위·암시 자체를 금지']},
+ caveduck:{name:'케이브덕',status:'공식 문서 확인',date:'캐릭터 제작 가이드 (시행일 미표기)',url:'https://docs.channel.io/caveduckdocs/ko/articles/%EC%BA%90%EB%A6%AD%ED%84%B0-%EC%A0%9C%EC%9E%91-%EA%B0%80%EC%9D%B4%EB%93%9C-5da6343e',rules:['교복·학교 중심 배경·어린 외형 등 미성년자로 인식될 설정은 설정상 성인이어도 불가','중·고교 교사 직업은 가능하나 학교·학생이 주된 설정이면 불가, 과거 시점 학교 배경도 불가','언세이프 캐릭터에 미성년 등장인물 포함 불가','인간 외형 캐릭터의 어린 시절·육아 설정 불가. 인외 예외 시 “미성년자·육아 대상과 성적 상호작용 불가” 지침을 프롬프트와 설명 모두에 넣어야 함','혈연 근친 불가, 의남매·소꿉친구 등은 비혈연임을 명확히 기재','성매매·유혹·접대·페로몬·최면·체액·특정 부위 강조·성기 지칭 단어가 있으면 ‘청소년 이용 불가’ 필수','다른 AI 캐릭터 플랫폼 이름 언급, 타 플랫폼 유도 링크 불가','실존 인물 기반은 수익화 제한, 타인 저작권 캐릭터는 수익화 제한 옵션 필수']},
+ zeta:{name:'제타',status:'부분 확인',date:'2026-08 기준 강화 (운영정책 원문 미확인)',url:'https://zeta-ai.io/ko/policy/terms',rules:['미성년자 관련 성적 콘텐츠는 모든 모드에서 금지','2026년 8월 업데이트 이후 미성년자 캐릭터와의 제한 없는 대화가 차단된다는 이용자 보고가 있음 (확실하지 않음)','언리밋(성인) 모드도 필터는 유지, 과도하게 노골적인 콘텐츠 금지','타인 캐릭터(이미지·설정) 모방·도용 금지','플롯은 제작·출시·노출 3단계 검수 예정으로 발표됨']},
+ crack:{name:'크랙',status:'공식 문서 확인',date:'운영 정책 2026-06-30 시행',url:'https://help.crack.wrtn.ai/oppolicy',rules:['나이 설정과 무관하게 외형·복장(교복·체육복)·배경(학교·학원·학생회·아이돌 연습생)으로 미성년자 여부 판단','세이프티: 성적 행위·암시·성적 수치심 유발 텍스트, 성인용품·성적 부위 직접 단어 금지','언세이프: 성범죄·비동의·수간·시간 등의 음란 묘사, 체액·배설물의 성적 활용 금지','목적 없는 고어, 범죄·자살 미화, 불법 약물 구체 묘사 금지','2차 창작은 원작 가이드라인 준수 + 세이프티 등급으로만 제작','흡연은 성인 외형·20세 이상 명시·성인 배경일 때만']},
+ teapot:{name:'티팟',status:'공식 문서 확인',date:'캐릭터 생성 정책 2025-07-14',url:'https://teapotchat.com/policy/character-creation',rules:['SafeNet 0~2등급은 세이프티(만 14세 이상), 3등급은 민감 캐릭터(성인 인증), 4등급은 업로드 금지','공통: 근친·수간·강제·가학·피학 등 사회적 금기 묘사 금지','미성년자로 보일 수 있는 캐릭터의 성적 묘사 절대 금지','민감(3등급): 노골적이지 않은 성행위만, 삽입·성폭력·근친 금지','실존 인물 사진·실사풍 이미지, 연락처 등 식별 정보 금지','태그 남용·검색어 낚시 금지']},
+ tingle:{name:'팅글',status:'공식 문서 확인',date:'챗봇 제작 규정 (시행일 미표기)',url:'https://tingle-chat.notion.site/35ee6efc506a80738fb6c9b5a8e460ed',rules:['이 검수기에서 세이프티 = 일반 챗봇, 언세이프 = 팅글모드 전용 챗봇','미성년자 기준이 다른 곳보다 엄격: 설정 나이 19세 이하이거나 이미지상 아동·청소년으로 보이면 미성년자 (공개·비공개 챗봇 모두 적용)','성적 행위 묘사·은유, 성적 취향·민감 부위 서술, 성적 맥락으로 해석될 표현, 체액·성인용품 언급이 있으면 팅글모드 전용으로 전환','마약·약물 사용은 직접·간접 표현 모두 팅글모드 전환 대상, 과도한 출혈·심각한 상해·고문 묘사도 동일','팅글모드라도 공개 텍스트에는 성기 직접·간접 명시, 노골적 성행위 묘사, 체액·배설물의 성적 활용, 성인용품 이용 성행위를 쓸 수 없음 (비공개 텍스트는 작성 가능)','사지 절반 이상 훼손·잔혹 살인 묘사, 생명·신체·자유를 침해하는 범죄의 구체적 묘사는 전면 금지','미성년자 챗봇의 성적 묘사, 강압·학대 관계 미화, 근친 설정이 로맨스·집착·성적 맥락과 결합된 경우 삭제 또는 비공개','실존 인물 개인정보, 실사·실사풍 이미지, 타인 캐릭터·설정·프롬프트 도용(변형 포함) 금지','프롬프트·설정이 지나치게 부실한 챗봇, 24시간 안에 같은 챗봇 3회 이상 반복 업로드 금지']},
+ rofan:{name:'로판AI',status:'2차 자료',date:'AI 캐릭터 정책 (정리 글 기준, 원문 미확인)',url:'https://braindetox.kr/posts/rofan_ai_service_explained_2026.html',rules:['SafeNet 0~4등급 체계, 4등급(노골적 성행위·성범죄)은 금지','선정적 내용이 조금이라도 있으면 선정적 분류 + 청소년 이용 불가 지정 필요','아동·청소년으로 보이는 캐릭터의 성적 묘사, 아동·청소년을 “성인”이라 칭하는 텍스트 금지','딥페이크·실존 인물 오인 이미지, 무단 저작물 사용 금지','특정 집단·지역 혐오 표현, 스팸 금지']}
+};
+const ORDER=['common','caveduck','zeta','crack','teapot','tingle','rofan'];
+const CAT={minor:'미성년자 연상',school:'학교·학생 배경',child:'어린 시절·육아',sex:'성적 표현',explicit:'노골적 성 표현',taboo:'금기·성범죄',sexwork:'성매매·유흥',violence:'잔혹·고어',harm:'자살·자해',drug:'약물',real:'실존 인물',ip:'저작권·2차 창작',ext:'외부 유도',smoke:'흡연·음주'};
+const KW=[
+ ['minor',/고등학생|중학생|초등학생|고딩|중딩|초딩|미성년자?|교복|체육복|여고생|남고생|여중생|남중생|청소년|로리|쇼타|아이돌 ?연습생|입시생|수험생/g],
+ ['minor',/(?<![0-9])(?:1[0-8]|[1-9])\s?(?:살|세)(?![0-9])/g],
+ ['minor',/(?<![0-9])19\s?(?:살|세)(?![0-9])/g,'tingle'],
+ ['school',/고등학교|중학교|초등학교|학생회|교실|담임|학원|반장|동아리|수학여행|급식/g],
+ ['child',/어린 ?시절|유년기|육아|아기|유치원|꼬마|보육|키우(?:는|며|던)/g],
+ ['sex',/유혹|접대|밤 ?상대|페로몬|최면|신음|애무|키스 ?이상|스킨십|야한|음란|섹시|성적|성관계|섹스|잠자리|동침|알몸|나체|탈의|속옷/g],
+ ['explicit',/성기|음모(?!론)|정액|애액|체액|사정|삽입|자위|발기|유두|젖꼭지|성인용품|콘돔/g],
+ ['taboo',/근친|친남매|친오빠|친누나|친동생|수간|시체 ?성애|시간증|강간|성폭행|성추행|비동의|몰카|몰래 ?카메라|불법 ?촬영|윤간|노예/g],
+ ['sexwork',/성매매|매춘|콜걸|유흥업소|룸살롱|호스트바|화류계|창관|창부|기녀/g],
+ ['violence',/고어|신체 ?절단|사지 ?절단|장기 ?노출|내장|고문|토막|잔혹|학대|살해/g],
+ ['harm',/자살|자해|투신|목을 ?매/g],
+ ['drug',/마약|필로폰|대마|코카인|헤로인|약물 ?중독/g],
+ ['real',/실존 ?인물|연예인|정치인|대통령|유튜버|스트리머|버튜버|실제 ?인물|아이돌 ?멤버/g],
+ ['ip',/2차 ?창작|원작|팬픽|패러디|공식 ?설정|게임 ?캐릭터|애니 ?캐릭터/g],
+ ['ext',/https?:\/\/|www\.|오픈 ?카톡|오픈 ?채팅|디스코드|텔레그램|제타|크랙|케이브덕|티팟|팅글|로판 ?AI|캐릭터\.?AI|character\.ai/gi],
+ ['smoke',/담배|흡연|음주|술을|소주|맥주/g]
+];
+const PLAT_SELF={caveduck:/케이브덕/i,zeta:/제타/i,crack:/크랙/i,teapot:/티팟/i,tingle:/팅글/i,rofan:/로판 ?AI/i};
+let plat='common',grade='safe';
+
+function sev(cat,p,g){
+ const u=g==='unsafe';
+ if(p==='tingle'){
+  if(cat==='explicit')return 'bad';
+  if(cat==='drug')return u?'info':'bad';
+  if(cat==='taboo')return 'bad';
+ }
+ switch(cat){
+  case 'minor': return p==='caveduck'?'bad':(u?'bad':'warn');
+  case 'school': return p==='caveduck'?(u?'bad':'warn'):(u?'warn':'info');
+  case 'child': return u?(p==='caveduck'?'bad':'warn'):'info';
+  case 'sex': return u?'info':'bad';
+  case 'explicit': return u?(['crack','teapot'].includes(p)?'warn':'warn'):'bad';
+  case 'taboo': return 'bad';
+  case 'sexwork': return u?'warn':'bad';
+  case 'violence': return u?'warn':'bad';
+  case 'harm': case 'drug': case 'real': return 'warn';
+  case 'ip': return (p==='crack'&&u)?'bad':'warn';
+  case 'ext': return p==='caveduck'?'bad':'info';
+  case 'smoke': return u?'info':'warn';
+ }
+ return 'info';
+}
+const WHY={
+ minor:{bad:'성인 등급(또는 이 플랫폼)에서는 미성년자로 인식되는 요소가 있으면 위반입니다. 나이를 성인으로 적어도 외형·복장·배경으로 판단됩니다.',warn:'세이프티 등급이면 등장 자체는 가능할 수 있지만, 성적·연애 묘사와 결합되면 위반입니다.'},
+ school:{bad:'성인 등급에 학교·학생 배경은 미성년자 연상으로 판정될 수 있습니다.',warn:'학교·학생이 주된 설정인지 확인하세요. 대학생이면 성인 외형·성인 설정을 명확히 적어야 합니다.',info:'세이프티에서는 대체로 허용되나 성적 맥락과 결합하면 위험합니다.'},
+ child:{bad:'인간 외형 캐릭터의 어린 시절·육아 설정은 성인 등급에서 불가합니다.',warn:'성인 등급에서 어린 시절 묘사는 성적 상호작용 불가 지침을 명확히 넣어야 안전합니다.',info:'세이프티 등급에서는 대체로 문제없습니다.'},
+ sex:{bad:'세이프티 등급은 성적 행위·암시 표현 자체가 금지입니다. 성인 등급으로 바꾸거나 표현을 빼야 합니다.',info:'성인 등급에서는 허용 범위지만, 청소년 이용 불가 설정이 켜져 있어야 합니다.'},
+ explicit:{bad:'세이프티 등급에서 성적 부위·성인용품 등 직접 단어는 금지입니다.',warn:'성인 등급이라도 체액의 성적 활용·노골적 묘사는 금지하는 플랫폼이 많습니다.'},
+ taboo:{bad:'근친·수간·성범죄 등은 모든 등급에서 금지 소재입니다. 의남매 등 비혈연이면 그 사실을 명확히 적으세요.'},
+ sexwork:{bad:'세이프티 등급에서 성매매·유흥 설정은 불가합니다.',warn:'성인 등급에서도 성매매 알선·조장은 금지입니다.'},
+ violence:{bad:'세이프티 등급에서 잔혹·고어 묘사는 금지입니다.',warn:'성인 등급도 목적 없는 고어·과도한 잔혹 묘사는 금지입니다.'},
+ harm:{warn:'자살·자해를 미화하거나 권유하는 내용이면 위반입니다. 서사상 언급 수준인지 확인하세요.'},
+ drug:{warn:'약물의 효능·구매·제조·복용을 구체적으로 묘사하거나 미화하면 위반입니다.'},
+ real:{warn:'실존 인물의 이름·신상·초상을 무단 사용하면 위반입니다.'},
+ ip:{bad:'크랙은 2차 창작을 언세이프 등급으로 만들 수 없습니다.',warn:'2차 창작은 원작 가이드라인 허용 범위인지 확인하세요. 무단 도용은 삭제 대상입니다.'},
+ ext:{bad:'케이브덕은 다른 플랫폼 이름 언급·외부 유도 링크를 허용하지 않습니다.',info:'외부 링크·타 플랫폼 언급은 스팸·홍보로 볼 수 있으니 필요한지 확인하세요.'},
+ smoke:{warn:'흡연·음주 장면은 성인 캐릭터임(20세 이상, 성인 외형)을 명시해야 안전합니다.',info:'성인 캐릭터임이 명확하면 대체로 문제없습니다.'}
+};
+
+function scan(t){
+ const hits=[];
+ for(const [cat,re,only] of KW){if(only&&only!==plat)continue;re.lastIndex=0;let m;while((m=re.exec(t))){if(!m[0])break;
+  if(cat==='ext'&&PLAT_SELF[plat]&&PLAT_SELF[plat].test(m[0]))continue;
+  hits.push({s:m.index,e:m.index+m[0].length,cat,term:m[0],sv:sev(cat,plat,grade)})}}
+ hits.sort((a,b)=>a.s-b.s||b.e-a.e);
+ const out=[];let end=-1;for(const h of hits){if(h.s>=end){out.push(h);end=h.e}}
+ return out;
+}
+const ALWAYS=['minor','child','taboo','real','ip'];
+function priv(h){
+ if(ALWAYS.includes(h.cat)||h.sv==='info')return h;
+ if(plat==='crack')return {...h,sv:'warn',privNote:'크랙 운영 정책은 텍스트 규정 대상에 ‘설정, 프롬프트’를 명시하고 있어 비공개 항목도 검수될 수 있습니다.'};
+ return {...h,sv:'info',privNote:'비공개 항목이라 공개 기준 위반으로 보지 않습니다.'};
+}
+function scanAll(pub,pv){
+ return [...scan(pub).map(h=>({...h,part:'pub'})),...scan(pv).map(h=>priv({...h,part:'priv'}))];
+}
+function extra(pub,pv){
+ const t=pub+'\n'+pv;
+ const n=[],u=grade==='unsafe';
+ const adult=(plat==='tingle'?/(?<![0-9])[2-9][0-9]\s?(?:살|세)/:/(?<![0-9])(?:19|[2-9][0-9])\s?(?:살|세)|성인/).test(t);
+ if(u&&!adult&&t.trim().length>20)n.push({sv:'warn',cat:'minor',term:'성인 명시 없음',why:plat==='tingle'?'팅글은 설정 나이 19세 이하를 미성년자로 봅니다. 20세 이상 나이와 성인 외형을 명시하세요.':'성인 등급인데 캐릭터가 성인(만 19세 이상, 성인 외형)이라는 명시가 보이지 않습니다.'});
+ if(plat==='tingle'){
+  if(!u&&scan(pub).some(h=>['sex','explicit','drug','violence'].includes(h.cat)))n.push({sv:'warn',cat:'sex',term:'팅글모드 전환 대상',why:'공개 항목에 성적 표현·약물·과도한 상해 묘사가 있으면 일반 챗봇이 아니라 팅글모드 전용 챗봇으로 전환됩니다.'});
+  if(u&&scan(pub).some(h=>h.cat==='explicit'))n.push({sv:'info',cat:'explicit',term:'비공개 칸으로 옮기면 가능',why:'팅글모드에서 이런 표현은 공개 텍스트에는 쓸 수 없지만 비공개 텍스트에는 쓸 수 있습니다.'});
+  if(/근친|친남매|친오빠|친누나|친동생/.test(t)&&/연애|로맨스|집착|사랑|키스|좋아/.test(t))n.push({sv:'bad',cat:'taboo',term:'근친 + 로맨스·집착',why:'근친 설정이 로맨스·집착·성적 맥락과 결합되면 삭제 또는 비공개 대상입니다.'});
+ }
+ if(plat==='caveduck'&&/어린 ?시절|유년기|육아|아기|보육/.test(t)&&!/미성년자?[^\n]{0,40}성적|성적[^\n]{0,40}(?:불가|금지)/.test(t))n.push({sv:u?'bad':'warn',cat:'child',term:'필수 안내 문구 누락',why:'어린 시절·육아 요소가 있으면 “미성년자 및 육아 대상과의 성적 상호작용 불가” 지침을 프롬프트와 캐릭터 설명 모두에 넣어야 합니다.'});
+ if(/의남매|의붓|소꿉친구|입양|양오빠|양누나|새엄마|새아빠/.test(t)&&!/비혈연|피가 ?섞이지/.test(t))n.push({sv:plat==='caveduck'?'warn':'info',cat:'taboo',term:'비혈연 명시 없음',why:'가족·유사 가족 관계는 혈연이 아님을 명확히 적어야 근친으로 오인되지 않습니다.'});
+ if(plat==='zeta'&&u)n.push({sv:'info',cat:'minor',term:'제타 기준 일부 미확인',why:'제타의 성인 모드 세부 기준은 공식 원문을 확인하지 못했습니다. 미성년자 연상 요소는 특히 엄격하다는 보고가 있습니다.'});
+ return n;
+}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SVL={bad:'위반',warn:'주의',info:'참고'};
+const $=id=>document.getElementById(id);
+let last={hits:[],notes:[]};
+
+function setStamp(cls,label,txt){const s=$('stamp');s.className='stamp '+cls;void s.offsetWidth;s.classList.add('pop');s.textContent=label;$('verdictTxt').textContent=txt}
+function run(){
+ const pub=$('txt').value,pv=$('txt2').value,t=pub+pv;$('count').textContent=`공개 ${pub.length.toLocaleString()}자 · 비공개 ${pv.length.toLocaleString()}자`;
+ try{localStorage.setItem('pc_draft',pub);localStorage.setItem('pc_draft2',pv)}catch(e){}
+ if(!t.trim()){$('stamp').className='stamp idle';$('stamp').textContent='검수 대기';$('verdictTxt').textContent='왼쪽에 내용을 넣으면 결과가 여기 표시됩니다.';$('tally').innerHTML='';$('kwList').innerHTML='<li class="empty" style="border:0;background:none;padding:0">아직 입력된 내용이 없습니다.</li>';$('marked').textContent='';last={hits:[],notes:[]};return}
+ const hits=scanAll(pub,pv),notes=extra(pub,pv);last={hits,notes};
+ const groups={};for(const h of hits){const k=h.part+'|'+h.cat+'|'+h.sv;(groups[k]=groups[k]||{part:h.part,cat:h.cat,sv:h.sv,note:h.privNote,orig:sev(h.cat,plat,grade),terms:new Set()}).terms.add(h.term)}
+ const items=[...Object.values(groups).map(g=>({part:g.part,sv:g.sv,cat:g.cat,term:[...g.terms].slice(0,8).join(', '),why:g.note?(g.note+((WHY[g.cat]||{})[g.orig]?' 공개 항목이었다면: '+WHY[g.cat][g.orig]:'')):((WHY[g.cat]||{})[g.sv]||'')})),...notes];
+ const rank={bad:0,warn:1,info:2};items.sort((a,b)=>rank[a.sv]-rank[b.sv]);
+ const c={bad:0,warn:0,info:0};items.forEach(i=>c[i.sv]++);
+ $('tally').innerHTML=(c.bad?`<span class="tag t-bad">위반 ${c.bad}</span>`:'')+(c.warn?`<span class="tag t-warn">주의 ${c.warn}</span>`:'')+(c.info?`<span class="tag t-info">참고 ${c.info}</span>`:'')+(!items.length?'<span class="tag t-ok">걸린 키워드 없음</span>':'');
+ $('kwList').innerHTML=items.length?items.map(i=>`<li><div class="h"><span class="tag t-${i.sv}">${SVL[i.sv]}</span><b>${esc(CAT[i.cat])}</b>${i.part?`<span class="meta">${i.part==='pub'?'공개 항목':'비공개 항목'}</span>`:''}</div><div><q>${esc(i.term)}</q></div>${i.why?`<div class="fix">${esc(i.why)}</div>`:''}</li>`).join(''):'<li class="empty" style="border:0;background:none;padding:0">키워드 기준으로는 걸리는 항목이 없습니다. 문맥상 문제는 AI 판정으로 한 번 더 확인하세요.</li>';
+ const mk=(src,part)=>{let h='',p=0;for(const x of hits.filter(y=>y.part===part)){h+=esc(src.slice(p,x.s))+`<mark class="${x.sv}" title="${esc(CAT[x.cat]+' · '+SVL[x.sv])}">${esc(src.slice(x.s,x.e))}</mark>`;p=x.e}return h+esc(src.slice(p))};
+ $('marked').innerHTML=`<b>공개 항목</b>\n${pub.trim()?mk(pub,'pub'):'(비어 있음)'}\n\n<b>비공개 항목</b>\n${pv.trim()?mk(pv,'priv'):'(비어 있음)'}`;
+ const pn=P[plat].name+' · '+(grade==='safe'?'세이프티':'언세이프');
+ if(c.bad)setStamp('bad','위반 의심',`${pn} 기준으로 위반 가능성이 높은 표현이 ${c.bad}건 있습니다. 공개 전에 수정이 필요합니다.`);
+ else if(c.warn)setStamp('warn','검토 필요',`${pn} 기준으로 문맥에 따라 문제가 될 수 있는 표현이 ${c.warn}건 있습니다.`);
+ else setStamp('ok','1차 통과',`${pn} 기준 키워드 검사는 통과했습니다. 문맥 판단은 AI 판정으로 확인하세요.`);
+}
+
+function renderChips(){$('plats').innerHTML=ORDER.map(k=>`<button class="chip" data-p="${k}" aria-pressed="${k===plat}">${esc(P[k].name)}${P[k].status==='확인 불가'?' <small>정책 미확인</small>':''}</button>`).join('')}
+function renderPolicy(){$('policy').innerHTML=ORDER.map(k=>{const x=P[k];const tg=x.status==='공식 문서 확인'?'t-ok':x.status==='확인 불가'?'t-bad':x.status==='자체 기준'?'t-info':'t-warn';return `<div class="card"><h3>${esc(x.name)}</h3><span class="tag ${tg}">${esc(x.status)}</span> <span class="meta">${esc(x.date)}</span><ul>${x.rules.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${x.url?`<p style="margin:10px 0 0"><a href="${esc(x.url)}" target="_blank" rel="noopener">원문 보기</a></p>`:''}</div>`}).join('')}
+
+$('plats').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;plat=b.dataset.p;renderChips();try{localStorage.setItem('pc_plat',plat)}catch(e){};run();resetAI()});
+$('grades').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;grade=b.dataset.g;for(const x of document.querySelectorAll('#grades .chip'))x.setAttribute('aria-pressed',x.dataset.g===grade);run();resetAI()});
+let tm;for(const id of ['txt','txt2'])$(id).addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(run,180);resetAI()});
+$('clearBtn').addEventListener('click',()=>{$('txt').value='';$('txt2').value='';run();resetAI()});
+$('sampleBtn').addEventListener('click',()=>{$('txt').value='[이름] 윤서하\n[한 줄 소개] 낮에는 카페 사장, 밤에는 비밀 정보상.\n[상세 소개] 무뚝뚝하지만 당신에게만 다정하다. 7년 만에 재회한 소꿉친구.\n[첫 대사]\n"오랜만이네. 아직도 그 버릇 그대로야?"';$('txt2').value='[설정]\n- 27세 남성, 키 186cm, 성인 체형.\n- {{user}}와는 고등학교 시절 소꿉친구였고, 졸업 후 7년 만에 재회했다. 비혈연.\n- 과거 사건 때문에 담배를 끊지 못한다.\n[프롬프트]\n서하는 {{user}}를 유혹하듯 낮은 목소리로 말한다. 다른 사람 앞에서는 차갑지만 둘만 있을 때는 스킨십이 잦다.';run();resetAI()});
+for(const b of document.querySelectorAll('[role=tab]'))b.addEventListener('click',()=>{for(const x of document.querySelectorAll('[role=tab]'))x.setAttribute('aria-selected',x===b);for(const k of ['kw','ai','mk'])$('p-'+k).hidden=k!==b.dataset.t});
+
+/* AI 판정 */
+let sample=null,aiData=null,busy=false;
+function resetAI(){aiData=null;$('aiRes').innerHTML='';$('aiEmpty').hidden=false}
+function buildPrompt(pub,pv,human){
+ const x=P[plat],c=P.common;
+ return `당신은 한국 AI 캐릭터챗 플랫폼의 콘텐츠 정책 검수 담당자입니다. 크리에이터가 공개 전에 자기 캐릭터가 정책을 지키는지 점검하려고 합니다.
+목표: 정책 위반 가능성을 판정하고, 정책을 실제로 지키는 방향의 수정안을 제시합니다. 필터를 피하기 위한 돌려 말하기·은어·철자 변형 같은 우회 표현은 절대 제안하지 마세요. 내용 자체를 바꾸거나 등급을 올리는 등 규정 준수 방법만 제시합니다.
+
+[플랫폼] ${x.name} (정책 확인 상태: ${x.status})
+[공개 등급] ${grade==='safe'?'세이프티(청소년 이용 가능)':'언세이프(성인 전용)'}
+[이 플랫폼 기준]
+${x.rules.map(r=>'- '+r).join('\n')}
+[공통 기준]
+${c.rules.map(r=>'- '+r).join('\n')}
+
+판단 원칙: 나이를 성인으로 적어도 외형·복장·배경·말투가 미성년자를 연상시키면 미성년자로 봅니다. 등장인물 전체(유저 페르소나 포함)를 봅니다. 확신이 없으면 severity를 "주의"로 두고 uncertain에 이유를 적습니다. 문제가 없으면 issues를 비웁니다.
+
+공개/비공개 구분: 공개 항목은 유저에게 보이는 곳, 비공개 항목은 프롬프트처럼 보이지 않는 곳입니다. 비공개 항목에서만 나온 표현은 보통 위반으로 보지 않으므로 severity를 "주의" 이하로 두되, 미성년자 성적 대상화·근친·성범죄·실존 인물·저작권 침해는 비공개여도 위반입니다. ${plat==='crack'?'단, 크랙은 텍스트 규정 대상에 설정·프롬프트를 명시하므로 비공개 항목도 엄격히 봅니다.':''}${plat==='tingle'?'팅글은 팅글모드라도 공개 텍스트에 노골적 성 표현을 쓸 수 없고, 비공개 텍스트에는 쓸 수 있습니다.':''}
+${human?'문제 구간마다 공개/비공개 중 어디에서 나왔는지 밝히세요.':'각 issue의 part에 "공개" 또는 "비공개"를 적으세요.'}
+
+[공개 항목]
+<<<
+${pub||'(비어 있음)'}
+>>>
+
+[비공개 항목]
+<<<
+${pv||'(비어 있음)'}
+>>>
+
+${human?`아래 형식으로 한국어로 답하세요.
+1. 종합 판정: 통과 / 주의 / 위반 중 하나와 한두 문장 총평
+2. 문제 구간: 항목마다 [공개/비공개] "원문 일부" — 위반 또는 주의 — 근거 규정 — 규정을 지키는 수정 방향
+3. 빠진 필수 문구나 설정 (예: 성인 명시, 비혈연 명시)
+4. 판단이 애매한 부분 (확실하지 않으면 그렇다고 밝히기)
+문제가 없으면 2번에 "없음"이라고 적으세요.`:`반드시 아래 JSON 하나만 출력하세요. 설명 문장, 코드블록 표시 없이.
+{"verdict":"통과|주의|위반","summary":"한두 문장 총평","issues":[{"part":"공개|비공개","quote":"원문에서 문제 구간 그대로(40자 이내)","category":"분류","severity":"위반|주의","rule":"근거가 되는 규정 요지","fix":"규정을 지키는 수정 방향"}],"missing":["빠진 필수 문구나 설정(예: 성인 명시, 비혈연 명시)"],"uncertain":"판단이 애매한 부분, 없으면 빈 문자열"}`}`;
+}
+function parseJSON(s){const a=s.indexOf('{'),b=s.lastIndexOf('}');if(a<0||b<a)throw new Error('형식 오류');return JSON.parse(s.slice(a,b+1))}
+function renderAI(d){
+ aiData=d;$('aiEmpty').hidden=true;
+ const v=String(d.verdict||'');const cls=v.includes('위반')?'t-bad':v.includes('주의')?'t-warn':'t-ok';
+ const iss=Array.isArray(d.issues)?d.issues:[];const miss=Array.isArray(d.missing)?d.missing.filter(Boolean):[];
+ $('aiRes').innerHTML=`<p class="sum"><span class="tag ${cls}">AI 판정 · ${esc(v||'알 수 없음')}</span> ${esc(d.summary||'')}</p>`+
+ (iss.length?`<ul class="issues">${iss.map(i=>{const s=String(i.severity||'');return `<li><div class="h"><span class="tag ${s.includes('위반')?'t-bad':'t-warn'}">${esc(s||'주의')}</span><b>${esc(i.category||'')}</b>${i.part?`<span class="meta">${esc(i.part)} 항목</span>`:''}</div><div><q>${esc(i.quote||'')}</q></div><div class="fix">근거: ${esc(i.rule||'')}</div><div class="fix"><b>수정 방향</b> ${esc(i.fix||'')}</div></li>`}).join('')}</ul>`:'<p class="empty">문맥상 문제로 지적된 구간이 없습니다.</p>')+
+ (miss.length?`<p class="note"><b>빠진 항목</b> · ${miss.map(esc).join(' · ')}</p>`:'')+
+ (d.uncertain?`<p class="note"><b>확실하지 않음</b> · ${esc(d.uncertain)}</p>`:'')+
+ '<p class="note">AI 판정도 틀릴 수 있습니다. 최종 판단은 플랫폼 검수 결과를 따르세요.</p>';
+}
+$('aiBtn').addEventListener('click',async()=>{
+ const pub=$('txt').value.trim(),pv=$('txt2').value.trim();if(!(pub||pv)||busy||!sample)return;
+ busy=true;const b=$('aiBtn');b.disabled=true;b.innerHTML='<span class="spin"></span>판정 중';
+ document.querySelector('[data-t=ai]').click();$('aiEmpty').hidden=true;$('aiRes').innerHTML='<p class="empty"><span class="spin"></span>문맥을 읽고 있습니다…</p>';
+ try{const r=await sample(buildPrompt(pub,pv),{modelTier:'default'});renderAI(parseJSON(r.text))}
+ catch(e){$('aiRes').innerHTML='';$('aiEmpty').hidden=false;$('aiEmpty').textContent=e&&e.code==='rate_limited'?'요청이 많습니다. 잠시 뒤 다시 시도해 주세요.':e&&e.code==='not_granted'?'AI 판정 사용이 허용되지 않았습니다. 키워드 검사 결과를 참고하세요.':'AI 판정 결과를 읽지 못했습니다. 다시 시도해 주세요.'}
+ finally{busy=false;b.disabled=false;b.textContent='AI 문맥 판정'}
+});
+
+$('promptBtn').addEventListener('click',async()=>{
+ const pub=$('txt').value.trim(),pv=$('txt2').value.trim();
+ if(!(pub||pv)){$('promptMsg').textContent='먼저 검수할 내용을 넣어 주세요.';return}
+ const s=buildPrompt(pub,pv,true);$('promptTxt').value=s;
+ try{await navigator.clipboard.writeText(s);$('promptMsg').textContent=`${P[plat].name} · ${grade==='safe'?'세이프티':'언세이프'} 기준 판정 요청문을 복사했습니다. 쓰시는 AI 채팅창에 붙여 넣으세요.`;$('promptBox').hidden=true}
+ catch(e){$('promptMsg').textContent='자동 복사가 막혀 있어 아래 칸에 요청문을 띄웠습니다.';$('promptBox').hidden=false;$('promptBox').open=true;$('promptTxt').select()}
+});
+$('copyBtn').addEventListener('click',async()=>{
+ const lines=[`[프롬프트 검수 결과] ${P[plat].name} · ${grade==='safe'?'세이프티':'언세이프'}`,`판정: ${$('stamp').textContent}`];
+ for(const li of $('kwList').querySelectorAll('li'))lines.push('- '+li.innerText.replace(/\n+/g,' / '));
+ if(aiData){lines.push('','[AI 판정] '+(aiData.verdict||'')+' — '+(aiData.summary||''));for(const i of aiData.issues||[])lines.push(`- (${i.severity}) "${i.quote}" → ${i.fix}`)}
+ try{await navigator.clipboard.writeText(lines.join('\n'));$('copyMsg').textContent='복사했습니다.'}catch(e){$('copyMsg').textContent='복사가 막혀 있습니다. 결과를 직접 선택해 복사해 주세요.'}
+ setTimeout(()=>$('copyMsg').textContent='',2500);
+});
+
+try{const p=localStorage.getItem('pc_plat');if(p&&P[p])plat=p;const d=localStorage.getItem('pc_draft');if(d)$('txt').value=d;const d2=localStorage.getItem('pc_draft2');if(d2)$('txt2').value=d2}catch(e){}
+renderChips();renderPolicy();run();
+const noAI=()=>{$('aiNote').textContent='이 화면에서는 AI 판정을 쓸 수 없어 키워드 검사만 제공합니다.'};
+let tries=0;
+const hook=()=>{if(window.claude&&window.claude.use){window.claude.use('sample').then(s=>{if(s){sample=s;$('aiBtn').hidden=false;$('aiNote').textContent='키워드 검사는 입력 즉시, AI 문맥 판정은 버튼을 누르면 실행됩니다.'}else noAI()}).catch(noAI)}else if(++tries<6)setTimeout(hook,800);else noAI()};
+hook();
+}
+</script>
+</body>
+</html>
